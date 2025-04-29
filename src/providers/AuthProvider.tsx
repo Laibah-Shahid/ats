@@ -94,11 +94,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const isUserRecruiter = await checkUserRole(currentSession.user.id);
             
             // Only redirect on sign-in events, not for general auth state changes
-            if (event === 'SIGNED_IN') {
+            if (event === 'SIGNED_IN' && location.pathname === '/login') {
               const redirectPath = isUserRecruiter ? '/recruiter' : '/dashboard';
               console.log("Redirecting after sign in to:", redirectPath);
               navigate(redirectPath);
             }
+            
           }, 0);
         } else {
           setUser(null);

@@ -7,7 +7,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const RecruiterPortal = () => {
   const [showJobForm, setShowJobForm] = useState(false);
@@ -48,10 +48,12 @@ const RecruiterPortal = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   +2 since last month
                 </p>
-                <div className="mt-4">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <BriefcaseIcon className="h-4 w-4 mr-2" />
-                    View Jobs
+                <div className="mt-4 ">
+                  <Button variant="outline" size="sm" className="w-full  "> 
+                    <Link to="/jobs" className="flex justify-between items-center">
+                      <BriefcaseIcon className="h-4 w-4 mr-2 " />
+                      View Jobs
+                  </Link>
                   </Button>
                 </div>
               </CardContent>
@@ -69,8 +71,10 @@ const RecruiterPortal = () => {
                 </p>
                 <div className="mt-4">
                   <Button variant="outline" size="sm" className="w-full">
-                    <Users className="h-4 w-4 mr-2" />
-                    View Candidates
+                    <Link to="/resumes" className="flex justify-between items-center">
+                        <Users className="h-4 w-4 mr-2 " />
+                            View Candidates
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
@@ -88,8 +92,10 @@ const RecruiterPortal = () => {
                 </p>
                 <div className="mt-4">
                   <Button variant="outline" size="sm" className="w-full">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    View Analytics
+                    <Link to="/insights" className="flex justify-between items-center">
+                        <BarChart3 className="h-4 w-4 mr-2 " />
+                          View Analytics
+                    </Link>
                   </Button>
                 </div>
               </CardContent>

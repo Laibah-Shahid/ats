@@ -15,13 +15,20 @@ import {
   UserIcon, 
   Users 
 } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface DashboardLayoutProps {
   children: ReactNode;
   userType?: "candidate" | "recruiter" | "admin";
 }
 
-const DashboardLayout = ({ children, userType = "candidate" }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  const { isRecruiter, isLoading } = useAuth();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const userType = isRecruiter ? "recruiter" : "candidate";
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -89,15 +96,7 @@ const DashboardLayout = ({ children, userType = "candidate" }: DashboardLayoutPr
 
           <div className="p-4 border-t border-border">
             <ul className="space-y-1">
-              <li>
-                <Link
-                  to="/settings"
-                  className="flex items-center px-3 py-2.5 text-sm text-gray-400 rounded-md hover:text-white hover:bg-jobaura-blue/50 transition-colors"
-                >
-                  <SettingsIcon size={18} className="mr-3" />
-                  Settings
-                </Link>
-              </li>
+          
               <li>
                 <Link
                   to="/login"
