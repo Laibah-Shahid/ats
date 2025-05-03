@@ -1,10 +1,10 @@
-
-import { Link } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,13 +32,14 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-8">
           <div className="hidden md:flex space-x-6">
             {navLinks.map((link) => (
-              <a
+              <HashLink
                 key={link.name}
-                href={link.path}
+                smooth
+                to={link.path}
                 className="text-sm text-gray-300 hover:text-white transition-colors"
               >
                 {link.name}
-              </a>
+              </HashLink>
             ))}
           </div>
           <div className="flex items-center space-x-4">
@@ -87,14 +88,15 @@ const Navbar = () => {
       >
         <div className="flex flex-col space-y-6">
           {navLinks.map((link) => (
-            <a
+            <HashLink
               key={link.name}
-              href={link.path}
+              smooth
+              to={link.path}
               className="text-lg font-medium text-gray-300 hover:text-white transition-colors"
               onClick={toggleMenu}
             >
               {link.name}
-            </a>
+            </HashLink>
           ))}
           <div className="flex flex-col space-y-4 pt-4 border-t border-gray-800">
             {user ? (

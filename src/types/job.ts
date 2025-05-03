@@ -1,4 +1,3 @@
-
 export interface Job {
   id: number | string;
   title: string;
