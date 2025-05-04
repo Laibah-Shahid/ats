@@ -11,40 +11,59 @@ export type Database = {
     Tables: {
       jobs: {
         Row: {
-          company: string
-          created_at: string
-          description: string
           id: string
+          title: string
+          company: string
+          location: string
+          locationType: string
+          employmentType: string
+          experienceLevel: string
+          salaryMin: number
+          salaryMax: number
+          description: string
           requirements: string
           skills: string[]
-          title: string
-          updated_at: string
           user_id: string
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          company: string
-          created_at?: string
-          description: string
           id?: string
+          title: string
+          company: string
+          location: string
+          locationType: string
+          employmentType: string
+          experienceLevel: string
+          salaryMin: number
+          salaryMax: number
+          description: string
           requirements: string
           skills?: string[]
-          title: string
-          updated_at?: string
           user_id: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          company?: string
-          created_at?: string
-          description?: string
           id?: string
+          title?: string
+          company?: string
+          location?: string
+          locationType?: string
+          employmentType?: string
+          experienceLevel?: string
+          salaryMin?: number
+          salaryMax?: number
+          description?: string
           requirements?: string
           skills?: string[]
-          title?: string
-          updated_at?: string
           user_id?: string
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
+      
       profiles: {
         Row: {
           created_at: string
