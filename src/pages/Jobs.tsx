@@ -39,14 +39,15 @@ const transformDbJobToJob = (dbJob: any): Job => {
   // Generate random match score for demonstration
   const matchScore = Math.floor(Math.random() * 30) + 70; // 70-99
   
+  // Fixed mapping between database field names and frontend field names
   return {
     id: dbJob.id,
     title: dbJob.title,
     company: dbJob.company,
     location: dbJob.location || "Remote",
-    locationType: dbJob.location_type as "Remote" | "Onsite" | "Hybrid",
-    salary: `$${(dbJob.salary_min / 1000).toFixed(0)}K - $${(dbJob.salary_max / 1000).toFixed(0)}K`,
-    salaryRange: [dbJob.salary_min, dbJob.salary_max],
+    locationType: dbJob.locationType || "Remote", // Using the correct field name
+    salary: `$${(dbJob.salaryMin / 1000).toFixed(0)}K - $${(dbJob.salaryMax / 1000).toFixed(0)}K`,
+    salaryRange: [dbJob.salaryMin, dbJob.salaryMax],
     posted: formatDaysAgo(postedDays),
     postedDays: postedDays,
     description: dbJob.description,
@@ -54,8 +55,8 @@ const transformDbJobToJob = (dbJob: any): Job => {
     matchScore: matchScore,
     isFavorite: false, // Will be managed in state
     isApplied: false, // Will be managed in state
-    employmentType: dbJob.employment_type as "Full-time" | "Part-time" | "Contract" | "Internship",
-    experienceLevel: dbJob.experience_level as "Entry" | "Mid" | "Senior" | "Lead",
+    employmentType: dbJob.employmentType, // Using the correct field name
+    experienceLevel: dbJob.experienceLevel, // Using the correct field name
     // Optional database fields
     created_at: dbJob.created_at,
     updated_at: dbJob.updated_at,

@@ -1,5 +1,5 @@
 
-import { StarIcon, MapPinIcon, BriefcaseIcon, Clock, CheckIcon } from "lucide-react";
+import { StarIcon, MapPinIcon, BriefcaseIcon, Clock, CheckIcon, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Job } from "@/types/job";
@@ -19,6 +19,15 @@ export const JobCard = ({
   onFavorite, 
   onApply 
 }: JobCardProps) => {
+  // Log the job object to see all fields
+  console.log("Job Data:", job);
+  
+  // Log specific fields
+  console.log("Title:", job.title);
+  console.log("Location:", job.locationType);
+  console.log("Company:", job.salary);
+  console.log("Skills:", job.experienceLevel);
+  console.log("Match Score:", job.matchScore);
   return (
     <Card 
       className={`bg-jobaura-blue-light border-jobaura-blue hover:border-primary/40 transition-colors cursor-pointer ${
@@ -50,11 +59,15 @@ export const JobCard = ({
             <div className="flex flex-wrap gap-2 mb-3">
               <div className="flex items-center text-sm text-gray-400">
                 <MapPinIcon size={14} className="mr-1" />
-                <span>{job.location}</span>
+                <span>{job.location} ({job.locationType})</span>
               </div>
               <div className="flex items-center text-sm text-gray-400">
                 <BriefcaseIcon size={14} className="mr-1" />
                 <span>{job.employmentType}</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-400">
+                <BadgeCheck size={14} className="mr-1" />
+                <span>{job.experienceLevel}</span>
               </div>
               <div className="flex items-center text-sm text-gray-400">
                 <Clock size={14} className="mr-1" />
