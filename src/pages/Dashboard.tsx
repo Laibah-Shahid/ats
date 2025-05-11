@@ -5,8 +5,10 @@ import { PageHeader } from "@/components/ui/page-header";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { ArrowUpRight, BarChart2, BriefcaseIcon, FileTextIcon, PlusIcon, TrendingUp, UserIcon, UsersIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/providers/AuthProvider";
 
 const Dashboard = () => {
+  const { isRecruiter } = useAuth();
   // Mock data for dashboard stats
   const stats = [
     { 
@@ -114,10 +116,14 @@ const Dashboard = () => {
         title="Dashboard"
         description="Welcome back! Here's an overview of your job search."
       >
-        <Button size="sm" className="gap-1">
-          <PlusIcon size={16} />
-          <span>Quick Apply</span>
-        </Button>
+      {!isRecruiter && (
+          <Link to="/upload-resume" className="w-full">
+          <Button  size="sm" className="gap-1">
+            <PlusIcon className="h-4 w-4 mr-2" />
+            <span>Quick Apply</span>
+          </Button>
+       </Link>
+)}
       </PageHeader>
 
       {/* Stats Grid */}
