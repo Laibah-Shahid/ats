@@ -2,8 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const setupRecruiter = async () => {
-  const RECRUITER_EMAIL = "recruiter@gmail.com";
-  const RECRUITER_PASSWORD = "Ab123!@#";
+  const RECRUITER_EMAIL = "laibah@gmail.com";
+  const RECRUITER_PASSWORD = "Ld098!@#";
 
   try {
     console.log("Setting up recruiter account");
@@ -12,7 +12,7 @@ export const setupRecruiter = async () => {
     const { data: existingProfile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', '4e19c8f3-549a-46a1-b641-1bfa6498b59d') // Hardcoded ID from logs
+      .eq('id', 'a1db2933-6942-4ba5-9a4c-d6a8a86b4f07') // Hardcoded ID from logs
       .single();
       
     // If profile exists and is already a recruiter, we're done
