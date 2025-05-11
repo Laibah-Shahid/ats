@@ -11,6 +11,7 @@ export interface Job {
   description: string;
   skills: string[];
   matchScore: number;
+  matchExplanation: string; // Add the matchExplanation property
   isFavorite: boolean;
   isApplied: boolean;
   employmentType: "Full-time" | "Part-time" | "Contract" | "Internship";

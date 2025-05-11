@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,8 @@ import { Job } from "@/types/job";
 import { XIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/providers/AuthProvider";
+import { transformDbJobToJob } from "@/utils/jobUtils";
 
 // Helper function to calculate days between dates
 const getDaysBetween = (date1: Date, date2: Date = new Date()): number => {
@@ -30,49 +31,15 @@ const formatDaysAgo = (days: number): string => {
   return `${days} days ago`;
 };
 
-// Transform database job to frontend job model
-const transformDbJobToJob = (dbJob: any): Job => {
-  const createdAt = new Date(dbJob.created_at);
-  const now = new Date();
-  const postedDays = getDaysBetween(createdAt, now);
-  
-  // Generate random match score for demonstration
-  const matchScore = Math.floor(Math.random() * 30) + 70; // 70-99
-  
-  // Fixed mapping between database field names and frontend field names
-  return {
-    id: dbJob.id,
-    title: dbJob.title,
-    company: dbJob.company,
-    location: dbJob.location || "Remote",
-    locationType: dbJob.locationType || "Remote", // Using the correct field name
-    salary: `$${(dbJob.salaryMin / 1000).toFixed(0)}K - $${(dbJob.salaryMax / 1000).toFixed(0)}K`,
-    salaryRange: [dbJob.salaryMin, dbJob.salaryMax],
-    posted: formatDaysAgo(postedDays),
-    postedDays: postedDays,
-    description: dbJob.description,
-    skills: dbJob.skills || [],
-    matchScore: matchScore,
-    isFavorite: false, // Will be managed in state
-    isApplied: false, // Will be managed in state
-    employmentType: dbJob.employmentType, // Using the correct field name
-    experienceLevel: dbJob.experienceLevel, // Using the correct field name
-    // Optional database fields
-    created_at: dbJob.created_at,
-    updated_at: dbJob.updated_at,
-    user_id: dbJob.user_id,
-    requirements: dbJob.requirements
-  };
-};
-
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [allJobs, setAllJobs] = useState<Job[]>([]); // Store unfiltered jobs
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Filter states
   const [salaryRange, setSalaryRange] = useState<[number, number]>([50000, 200000]);
@@ -110,8 +77,10 @@ const Jobs = () => {
         }
 
         if (data) {
-          // Transform database jobs to frontend job model
-          const transformedJobs = data.map(transformDbJobToJob);
+          // Transform database jobs to frontend job model with real match scores
+          const transformPromises = data.map(job => transformDbJobToJob(job, user?.id));
+          const transformedJobs = await Promise.all(transformPromises);
+          
           setAllJobs(transformedJobs);
           setJobs(transformedJobs);
         }
@@ -140,22 +109,90 @@ const Jobs = () => {
         console.log('Job change received:', payload);
         if (payload.eventType === 'INSERT') {
           // Add new job to the list
-          const newJob = transformDbJobToJob(payload.new);
-          setAllJobs(prevJobs => [newJob, ...prevJobs]);
-          setJobs(prevJobs => [newJob, ...prevJobs]);
+          const processNewJob = async () => {
+            const newJob = await transformDbJobToJob(payload.new, user?.id);
+            setAllJobs(prevJobs => [newJob, ...prevJobs]);
+            setJobs(prevJobs => [newJob, ...prevJobs]);
+          };
+          
+          processNewJob();
           
           toast({
             title: 'New Job Posted',
-            description: `${newJob.title} at ${newJob.company} is now available.`
+            description: `${payload.new.title} at ${payload.new.company} is now available.`
           });
+        }
+      })
+      .subscribe();
+
+    // Set up realtime subscription for match updates
+    const matchesChannel = supabase
+      .channel('public:job_resume_matches')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'job_resume_matches'
+      }, payload => {
+        console.log('Match update received:', payload);
+        if (user && (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE')) {
+          // Check if this match is for the current user
+          const updateUserMatches = async () => {
+            const { data: userResumes } = await supabase
+              .from('resumes')
+              .select('id')
+              .eq('user_id', user.id);
+            
+            if (userResumes && userResumes.length > 0) {
+              const userResumeIds = userResumes.map(r => r.id);
+              
+              if (userResumeIds.includes(payload.new.resume_id)) {
+                // Update the job's match score in our state
+                setAllJobs(prevJobs => 
+                  prevJobs.map(job => 
+                    job.id === payload.new.job_id 
+                      ? { 
+                          ...job, 
+                          matchScore: payload.new.match_percentage,
+                          matchExplanation: payload.new.match_explanation 
+                        } 
+                      : job
+                  )
+                );
+                
+                setJobs(prevJobs => 
+                  prevJobs.map(job => 
+                    job.id === payload.new.job_id 
+                      ? { 
+                          ...job, 
+                          matchScore: payload.new.match_percentage,
+                          matchExplanation: payload.new.match_explanation 
+                        } 
+                      : job
+                  )
+                );
+                
+                // Also update the selected job if it's the one that got updated
+                if (selectedJob && selectedJob.id === payload.new.job_id) {
+                  setSelectedJob({
+                    ...selectedJob,
+                    matchScore: payload.new.match_percentage,
+                    matchExplanation: payload.new.match_explanation
+                  });
+                }
+              }
+            }
+          };
+          
+          updateUserMatches();
         }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(jobsChannel);
+      supabase.removeChannel(matchesChannel);
     };
-  }, [toast]);
+  }, [toast, user]);
 
   // Handler functions
   const handleFiltersChange = (key: string, value: any) => {
@@ -322,9 +359,49 @@ const Jobs = () => {
     });
   };
 
-  // Handle job click to view details
-  const handleJobClick = (job: Job) => {
+  // Handle job click to view details - with real-time matching
+  const handleJobClick = async (job: Job) => {
     setSelectedJob(job);
+    
+    // If the user is logged in, trigger a match operation in the background
+    // This ensures the match score is updated when the user views a job
+    if (user && user.id) {
+      try {
+        // Find the user's resume
+        const { data: userResumes } = await supabase
+          .from('resumes')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        
+        if (userResumes && userResumes.length > 0) {
+          const resumeId = userResumes[0].id;
+          
+          // Call the edge function to update the match
+          const { data, error } = await supabase.functions.invoke("match-resume", {
+            body: { jobId: job.id },
+          });
+          
+          if (error) {
+            console.error('Error updating match score:', error);
+          } else if (data && data.results) {
+            // Find the result for the current user's resume
+            const userMatch = data.results.find((result: any) => result.id === resumeId);
+            
+            if (userMatch) {
+              // Update the selected job with the new match score
+              setSelectedJob({
+                ...job,
+                matchScore: userMatch.matchPercentage,
+                matchExplanation: userMatch.matchExplanation
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing job match:', error);
+      }
+    }
   };
 
   // Format salary for display
@@ -341,7 +418,7 @@ const Jobs = () => {
         title="Job Listings"
         description="Find your next career opportunity"
       >
-        <Button 
+        {/* <Button 
           size="sm" 
           variant="outline" 
           className="gap-1"
@@ -349,7 +426,7 @@ const Jobs = () => {
         >
           <FilterIcon size={16} />
           <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
-        </Button>
+        </Button> */}
       </PageHeader>
 
       {/* Search and Sort */}

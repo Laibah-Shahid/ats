@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/providers/AuthProvider";
@@ -18,9 +19,11 @@ import { ResumeFilters } from "@/components/resume/ResumeFilters";
 import { ResumeTable } from "@/components/resume/ResumeTable";
 import { Resume } from "@/types/resume";
 import { Job } from "@/types/job";
+import { transformDbJobToJob } from "@/utils/jobUtils";
+import { getMatchColor } from "@/utils/formatMatchExplanation"; 
 
 const ResumeList = () => {
-  const { isRecruiter } = useAuth();
+  const { isRecruiter, user } = useAuth();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
@@ -59,15 +62,10 @@ const ResumeList = () => {
 
     const fetchJobs = async () => {
       try {
-        const { data: tableExists, error: checkError } = await supabase.rpc('check_table_exists', {
-          table_name: 'jobs'
-        });
-
-        if (checkError || !tableExists) {
-          console.log('Jobs table does not exist yet');
-          return;
-        }
-
+        setLoading(true);
+        console.log('Fetching jobs directly...');
+        
+        // Skip the problematic check and fetch jobs directly
         const { data, error } = await supabase
           .from('jobs')
           .select('*')
@@ -78,46 +76,32 @@ const ResumeList = () => {
           return;
         }
 
-        // Convert database job records to our frontend Job interface
+        console.log('Jobs fetched:', data ? data.length : 0);
+        
+        // Transform jobs using utility function
         if (data && data.length > 0) {
-          const transformedJobs: Job[] = data.map(job => ({
-            id: job.id,
-            title: job.title || "Untitled Job",
-            company: job.company || "Unknown Company",
-            description: job.description || "",
-            skills: job.skills || [],
-            // Default values for required fields that don't exist in DB
-            location: "Not specified",
-            locationType: "Remote",
-            salary: "Not specified",
-            salaryRange: [0, 0],
-            posted: job.created_at ? new Date(job.created_at).toLocaleDateString() : "Recently",
-            postedDays: job.created_at ? Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0,
-            matchScore: 0,
-            isFavorite: false,
-            isApplied: false,
-            employmentType: "Full-time",
-            experienceLevel: "Mid",
-            // Keep database fields
-            created_at: job.created_at,
-            updated_at: job.updated_at,
-            user_id: job.user_id,
-            requirements: job.requirements
-          }));
+          const transformPromises = data.map(job => transformDbJobToJob(job, user?.id));
+          const transformedJobs = await Promise.all(transformPromises);
           
+          console.log('Transformed jobs:', transformedJobs.length);
           setJobs(transformedJobs);
+          
           if (transformedJobs.length > 0) {
             setSelectedJobId(String(transformedJobs[0].id));
           }
+        } else {
+          console.log('No jobs found in database');
         }
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        console.error('Error in fetchJobs:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchResumes();
     fetchJobs();
-  }, []);
+  }, [user]);
 
   const handleMatchResumes = async () => {
     if (!selectedJobId) {
@@ -131,12 +115,14 @@ const ResumeList = () => {
 
     setMatchingLoading(true);
     try {
+      console.log('Matching resumes against job ID:', selectedJobId);
       const { data, error } = await supabase.functions.invoke("match-resume", {
         body: { jobId: selectedJobId },
       });
 
       if (error) throw new Error(error.message);
 
+      console.log('Match results:', data);
       setMatchedResumes(data?.results || []);
       toast({
         title: "Matching Complete",
