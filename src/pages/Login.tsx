@@ -74,8 +74,8 @@ const Login = () => {
 
   // Show tutorial for recruiter login
   const handleDemoLogin = () => {
-    setEmail("recruiter@gmail.com");
-    setPassword("Ab123!@#");
+    setEmail("laibah@gmail.com");
+    setPassword("Ld098!@#");
     toast({
       title: "Demo credentials filled",
       description: "Click Sign In to log in as a recruiter",
