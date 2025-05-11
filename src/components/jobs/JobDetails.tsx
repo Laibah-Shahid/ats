@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Job } from "@/types/job";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface JobDetailsProps {
   job?: Job;
@@ -59,20 +60,12 @@ export const JobDetails = ({ job, onFavorite, onApply }: JobDetailsProps) => {
         </div>
         
         <div>
-          <div className="flex items-center mb-2">
-            <span className="text-sm font-medium mr-2">Match Score:</span>
-            <span 
-              className={`text-sm font-medium px-2 py-0.5 rounded-full ${
-                job.matchScore >= 90 
-                  ? "bg-green-500/20 text-green-400" 
-                  : job.matchScore >= 80 
-                  ? "bg-primary/20 text-primary" 
-                  : "bg-yellow-500/20 text-yellow-400"
-              }`}
-            >
-              {job.matchScore}%
-            </span>
-          </div>
+          <Tooltip>
+            
+            <TooltipContent className="max-w-sm p-4">
+              <p className="text-sm">{job.matchExplanation || "No match explanation available."}</p>
+            </TooltipContent>
+          </Tooltip>
           
           <div className="mb-2">
             <span className="text-sm font-medium">Salary: </span>
@@ -115,9 +108,6 @@ export const JobDetails = ({ job, onFavorite, onApply }: JobDetailsProps) => {
               <CheckIcon size={16} className="mr-2" />
               <span>You've already applied</span>
             </div>
-            <Button variant="outline" className="w-full">
-              View Application Status
-            </Button>
           </div>
         ) : (
           <Button className="w-full" onClick={() => onApply(job.id)}>
