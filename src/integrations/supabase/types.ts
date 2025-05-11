@@ -9,61 +9,105 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      jobs: {
+      job_resume_matches: {
         Row: {
-          id: string
-          title: string
-          company: string
-          location: string
-          locationType: string
-          employmentType: string
-          experienceLevel: string
-          salaryMin: number
-          salaryMax: number
-          description: string
-          requirements: string
-          skills: string[]
-          user_id: string
           created_at: string
+          id: string
+          job_id: string
+          match_explanation: string | null
+          match_percentage: number
+          resume_id: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          title: string
-          company: string
-          location: string
-          locationType: string
-          employmentType: string
-          experienceLevel: string
-          salaryMin: number
-          salaryMax: number
-          description: string
-          requirements: string
-          skills?: string[]
-          user_id: string
           created_at?: string
+          id?: string
+          job_id: string
+          match_explanation?: string | null
+          match_percentage: number
+          resume_id: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          title?: string
-          company?: string
-          location?: string
-          locationType?: string
-          employmentType?: string
-          experienceLevel?: string
-          salaryMin?: number
-          salaryMax?: number
-          description?: string
-          requirements?: string
-          skills?: string[]
-          user_id?: string
           created_at?: string
+          id?: string
+          job_id?: string
+          match_explanation?: string | null
+          match_percentage?: number
+          resume_id?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_resume_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_resume_matches_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          company: string
+          created_at: string
+          description: string
+          employmentType: string | null
+          experienceLevel: string | null
+          id: string
+          location: string | null
+          locationType: string | null
+          requirements: string
+          salaryMax: number | null
+          salaryMin: number | null
+          skills: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description: string
+          employmentType?: string | null
+          experienceLevel?: string | null
+          id?: string
+          location?: string | null
+          locationType?: string | null
+          requirements: string
+          salaryMax?: number | null
+          salaryMin?: number | null
+          skills?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string
+          employmentType?: string | null
+          experienceLevel?: string | null
+          id?: string
+          location?: string | null
+          locationType?: string | null
+          requirements?: string
+          salaryMax?: number | null
+          salaryMin?: number | null
+          skills?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
-      
       profiles: {
         Row: {
           created_at: string
